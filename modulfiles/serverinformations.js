@@ -7,7 +7,7 @@
  */
 
 const { console } = require('./console')
-const package = require('../package.json')
+const packagefile = require('../package.json')
 
 module.exports = class {
 
@@ -28,14 +28,15 @@ module.exports = class {
         console.log(" ");
         console.log(" ");
         console.log("DEV Informations:");
-        console.log("🔐 Pack Name: " + package.name)
-        console.log("🔐 Pack Version: " + package.version)
-        console.log("🔐 Pack Autor: " + package.author)
-        console.log("🔐 Pack Beschreibung: " + package.description)
-        console.log("🔐 Pack Scripte: " + package.scripts)
-        console.log("🔐 Pack Main: " + package.main)
-        console.log("🔐 Pack Lizenz: " + package.license)
+        console.log("🔐 Pack Name: " + packagefile.name)
+        console.log("🔐 Pack Version: " + packagefile.version)
+        console.log("🔐 Pack Autor: " + packagefile.author)
+        console.log("🔐 Pack Beschreibung: " + packagefile.description)
+        console.log("🔐 Pack Scripte: " + JSON.stringify(packagefile.scripts))
+        console.log("🔐 Pack Main: " + packagefile.main)
+        console.log("🔐 Pack Lizenz: " + packagefile.license)
         console.log("🔑 Server KEY: " + KEY);
+        console.log("🔑 Server NAME: " + require('../storage/connected_devices.json').devices[0].name)
         console.log(" ");
         console.log(" ");
     }
