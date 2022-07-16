@@ -4,7 +4,9 @@
   "description": "A Server System for LNM Technik",
   "main": "index.js",
   "scripts": {
-    "test": "node ."
+    "start":"node index.js",
+    "start:debug":"nodemon index.js",
+    "start:dev":"node ."
   },
   "author": "Loui",
   "license": "MIT",
