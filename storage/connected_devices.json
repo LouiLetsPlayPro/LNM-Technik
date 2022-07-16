@@ -1,0 +1,29 @@
+{
+    "devices":[
+        {
+            "port":9801,
+            "ip":"127.0.0.1",
+            "name":"dLVM-1LS.management=server"
+        },{
+            "port":0,
+            "ip":"127.0.1.1",
+            "name":"dLVM-1LS.management=server-extention"
+        },{
+            "port":2,
+            "ip":"127.0.1.1",
+            "name":"dLVM-1LS.management=server-extention"
+        },{
+            "port":3,
+            "ip":"127.0.1.1",
+            "name":"dLVM-1LS.management=server-extention"
+        },{
+            "port":4,
+            "ip":"127.0.1.1",
+            "name":"dLVM-1LS.management=server-extention"
+        },{
+            "port":6,
+            "ip":"127.0.1.1",
+            "name":"dLVM-1LS.management=server-extention"
+        }
+    ]
+}
