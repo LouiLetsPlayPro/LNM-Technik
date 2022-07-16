@@ -1,4 +1,12 @@
-function getTimestamp() {
+/**
+ * Dieses Modul wurde für das Projekt LNM Technik entwickelt!
+ * Es ist eine Erweiterung der allgemeinen Konsole.
+ * 
+ * Bitte dieses Modul nicht ohne Namensnennung verwenden!
+ * By Loui
+ */
+
+ function getTimestamp() {
     var timeNow = new Date();
     var timestamp = "" + timeNow.toLocaleTimeString() + " " + timeNow.toLocaleDateString()
     return timestamp;
