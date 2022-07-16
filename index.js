@@ -45,14 +45,14 @@ app.post("/", (req, res) => {
         return console.logWarning("New Reqeust without valid KEY");
     }
 
-    if (jsonrequestdata.NAME != "dLVM-1LS.management=client") {
+    if (jsonrequestdata.NAME != NAME) {
         res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
         return console.logWarning("New Reqeust without valid NAME");
     }
     
     if (jsonrequestdata.newconnection) {
         if (jsonrequestdata.newconnection == "true") {
-            newconnection(jsonrequestdata, res)
+            return res.json(newconnection(jsonrequestdata, res))
         }
     }
 
