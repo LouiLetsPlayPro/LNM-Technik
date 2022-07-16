@@ -32,7 +32,7 @@ module.exports = class {
         console.log("🔐 Pack Version: " + packagefile.version)
         console.log("🔐 Pack Autor: " + packagefile.author)
         console.log("🔐 Pack Beschreibung: " + packagefile.description)
-        console.log("🔐 Pack Scripte: " + packagefile.scripts)
+        console.log("🔐 Pack Scripte: " + JSON.stringify(packagefile.scripts))
         console.log("🔐 Pack Main: " + packagefile.main)
         console.log("🔐 Pack Lizenz: " + packagefile.license)
         console.log("🔑 Server KEY: " + KEY);
