@@ -2,7 +2,7 @@ var console = require('node:console')
 
 console.log("[0] Load Resources");
 
-const express = require('express')
+const WebSocket = require('ws')
 
 var { console } = require('./modulfiles/console');
 const { serverinformations } = require('./modulfiles/serverinformations')
@@ -10,10 +10,10 @@ const { newconnection } = require('./modulfiles/newconnection');
 const { newmessage } = require('./modulfiles/newmessage');
 const { registeruser } = require('./modulfiles/registeruser');
 const { removeuser } = require('./modulfiles/removeuser');
+const { removeconnction } = require('./modulfiles/removeconnection')
+const { getserver } = require('./modulfiles/getserver')
 
 console.log("[1] Create Server");
-
-const app = express()
 
 console.log("[0] Initialize Server Informations");
 
@@ -22,79 +22,135 @@ const IP = require('./storage/connected_devices.json').devices[0].ip
 const KEY = "15LVM.ts.0,0,1"
 const NAME = require('./storage/connected_devices.json').devices[0].name
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
-
-app.post("/", (req, res) => {
-
-    const jsonrequestdata = req.body
-    console.log(JSON.stringify(req.body))
-
-    if (!jsonrequestdata.KEY) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without KEY");
-    }
-
-    if (!jsonrequestdata.NAME) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without NAME");
-    }
-
-    if (jsonrequestdata.KEY != KEY) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without valid KEY");
-    }
-
-    if (jsonrequestdata.NAME != NAME) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without valid NAME");
-    }
-    
-    if (jsonrequestdata.newconnection) {
-        if (jsonrequestdata.newconnection == "true") {
-            return res.json(newconnection(jsonrequestdata, res))
-        }
-    }
-
-    const connected_devices = require('./storage/connected_devices.json')
-    if (!jsonrequestdata.port) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without port");
-    }
-    if (!jsonrequestdata.ip) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without ip");
-    }
-    if (jsonrequestdata.ip != "127.0.1.1") {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without valid ip");
-    }
-    if (!connected_devices.devices.includes(jsonrequestdata.port)) {
-        res.json({ "text": "Verbindung nicht erlaubt!", "data": "forbidden" })
-        return console.logWarning("New Reqeust without valid port");
-    }
-
-    if(jsonrequestdata.newmessage){
-        newmessage(jsonrequestdata, res)
-    }
-
-    if(jsonrequestdata.newuser){
-        registeruser(jsonrequestdata, res)
-    }
-
-    if(jsonrequestdata.removeconnection){
-        removeconnection(jsonrequestdata, res)
-    }
-
-    if(jsonrequestdata.removeuser){
-        removeuser(jsonrequestdata, res)
-    }
+const wss = new WebSocket.Server({
+    host: IP,
+    port: PORT
 })
 
-app.get("/", () => { })
+console.log("[1] LVM Technik BOOT");
+serverinformations(PORT, IP, KEY, NAME)
 
-app.listen(PORT, IP, () => {
+wss.on("connection", ws => {
 
-    console.log("[1] LVM Technik BOOT");
-    serverinformations(PORT, IP, KEY, NAME)
+    ws.on('message', async message => {
+        const jsonrequestdata = JSON.parse(message)
+        console.log(JSON.stringify(jsonrequestdata))
+
+        if (!jsonrequestdata.auth) {
+            return console.logWarning("New Reqeust without AUTH");
+        }
+
+        if (!jsonrequestdata.auth.KEY) {
+            return console.logWarning("New Reqeust without KEY");
+        }
+
+        if (!jsonrequestdata.auth.NAME) {
+            return console.logWarning("New Reqeust without NAME");
+        }
+
+        if (jsonrequestdata.auth.KEY != KEY) {
+            return console.logWarning("New Reqeust without valid KEY");
+        }
+
+        if (jsonrequestdata.auth.NAME != NAME) {
+            return console.logWarning("New Reqeust without valid NAME");
+        }
+
+        if (jsonrequestdata.newconnection) {
+            if (jsonrequestdata.newconnection == true) {
+                const datareturn = newconnection(jsonrequestdata)
+
+                const returnservice = new WebSocket("ws:127.0.0.2:1")
+                returnservice.addEventListener("open", e => {
+                    returnservice.send(JSON.stringify(datareturn))
+                })
+                return;
+            }
+        }
+
+        const connected_devices = require('./storage/connected_devices.json')
+        if (!jsonrequestdata.auth.port) {
+            return console.logWarning("New Reqeust without port");
+        }
+        if (!jsonrequestdata.auth.ip) {
+            return console.logWarning("New Reqeust without ip");
+        }
+        if (jsonrequestdata.auth.ip != "127.0.0.2") {
+            return console.logWarning("New Reqeust without valid ip");
+        }
+        var portacces = false
+        for (let i = 0; i < connected_devices.devices.length; i++) {
+            if (connected_devices.devices[i].port == jsonrequestdata.auth.port) {
+                portacces = true;
+            }
+        }
+
+        if (portacces == false) {
+            return console.logWarning("New Reqeust without valid port");
+        }
+
+        if (jsonrequestdata.newmessage) {
+            const returns = await newmessage(jsonrequestdata)
+            if (returns.send == false) {
+                return;
+            } else if (returns.send == true) {
+                try {
+                    for (let i = 0; i < connected_devices.devices.length; i++) {
+                        if (connected_devices.devices[i].ip == "127.0.0.2") {
+                            const returnservice = new WebSocket("ws:127.0.0.2:" + connected_devices.devices[i].port)
+                            returnservice.addEventListener("open", e => {
+                                returnservice.send(JSON.stringify({ "question": "newmessage", "messagedata": jsonrequestdata.messagedata }))
+                            })
+                            returnservice.on('error', e => {
+                                console.logError(e, "[1] Fehler")
+                            })
+                        }
+                    }
+                } catch (e) {
+                    console.logError(e, "[1] Fehler")
+                }
+            }
+        }
+
+        if (jsonrequestdata.newuser) {
+            var datareturn = registeruser(jsonrequestdata)
+            try {
+                for (let i = 0; i < connected_devices.devices.length; i++) {
+                    if (connected_devices.devices[i].ip == "127.0.0.2") {
+                        const returnservice = new WebSocket("ws:127.0.0.2:" + connected_devices.devices[i].port)
+                        returnservice.addEventListener("open", e => {
+                            returnservice.send(JSON.stringify(datareturn))
+                        })
+                        returnservice.on('error', e => {
+                            console.logError(e, "[1] Fehler")
+                        })
+                    }
+                }
+            } catch (e) {
+                console.logError(e, "[1] Fehler")
+            }
+        }
+
+        if (jsonrequestdata.removeconnection) {
+            removeconnction(jsonrequestdata)
+        }
+
+        if (jsonrequestdata.getserver) {
+            const datareturn = getserver(jsonrequestdata)
+            console.log(JSON.stringify(datareturn))
+
+            try {
+                const returnservice = new WebSocket("ws:127.0.0.2:" + jsonrequestdata.auth.port)
+                returnservice.addEventListener("open", e => {
+                    returnservice.send(JSON.stringify(datareturn))
+                })
+                returnservice.on('error', e => {
+                    console.logError(e, "[1] Fehler")
+                })
+            } catch (e) {
+                return console.logError(e, "[1] Fehler")
+            }
+            return;
+        }
+    })
 })

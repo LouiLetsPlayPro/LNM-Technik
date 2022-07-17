@@ -12,16 +12,16 @@ const { console } = require('./console')
 module.exports = class {
 
     /**
-     * @param {Express.Response} res 
+     * @return {JSON}
      */
 
-    static newconnection(res) {
+    static newconnection() {
 
         const Connecteddevices = require('../storage/connected_devices.json')
         const portdata = Connecteddevices.devices.length + 1
-        console.log("[2] New Port set to Server 127.0.1.1:" + portdata)
+        console.log("[2] New Port set to Server 127.0.0.2:" + portdata)
 
-        Connecteddevices.devices.push({port:portdata, ip:"127.0.1.1", name:"dLVM-1LS.management=client"})
+        Connecteddevices.devices.push({port:portdata, ip:"127.0.0.2", name:"dLVM-1LS.management=client"})
         fs.writeFileSync("./storage/connected_devices.json", JSON.stringify(Connecteddevices), function(e) {
             console.logError(e,"[2] Fehler!")
         })

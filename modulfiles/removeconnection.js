@@ -8,40 +8,49 @@
 
 const fs = require('fs')
 const { console } = require('./console')
-const { removeuser } = require('./removeuser')
+const WebSocket = require('ws')
 
 module.exports = class {
 
     /**
-     * @param {json} req
-     * @param {Express.Response} res 
+     * @param {number} id
      */
 
-    static removeconnction(req, res) {
+    static async removeuser(id) {
 
-        const Connecteddevices = require('../storage/connected_devices.json')
-        console.log("[2] New Port set to Server 127.0.1.1:" + portdata)
+        var server = require('../storage/server.json')
+        var users = server.server[0].user
+        var newusers = []
 
-        const newdevices = { "devices": [] }
-
-        removeuser({"userip":"127.0.1.1", "userport": req.port}, res)
-
-        for (let i = 0; i < Connecteddevices.devices.length; i++) {
-
-            if(Connecteddevices.devices[i].port == req.port){
-
-            }else{
-                newdevices.devices.push(Connecteddevices.devices[i])
+        for (let i = 0; i < users.length; i++) {
+            console.log("[2." + i + "] LOG: " + JSON.stringify(users[i].id) + " - " + JSON.stringify(id.id))
+            if(users[i].id != id.id){
+                console.log("[2." + i + "] LOG: " + JSON.stringify(users[i]))
+                newusers.push(users[i])
             }
-
         }
 
-        fs.writeFileSync("../storage/connected_devices.json", newdevices, (e) => {
-            console.logError(e, "[2] Fehler!")
-        })
+        server.server[0].user = newusers
+        console.log("[4] " + JSON.stringify(server.server[0].user))
 
-        return res.json({ "disconnected": true })
+        await fs.writeFileSync("./storage/server.json", JSON.stringify(server))
 
+        try {
+            const connected_devices = require('../storage/connected_devices.json')
+            for (let i = 0; i < connected_devices.devices.length; i++) {
+                if (connected_devices.devices[i].ip == "127.0.0.2") {
+                    const returnservice = new WebSocket("ws:127.0.0.2:" + connected_devices.devices[i].port)
+                    returnservice.addEventListener("open", e => {
+                        returnservice.send(JSON.stringify({"question":"removeuser","userid":id}))
+                    })
+                    returnservice.on('error', e => {
+                        console.logError(e, "[1] Fehler")
+                    })
+                }
+            }
+        } catch (e) {
+            console.logError(e, "[1] Fehler")
+        }
     }
 
 }
