@@ -14,33 +14,30 @@ module.exports = class {
 
     /**
      * @param {json} req
-     * @param {Express.Response} res 
      */
 
-    static removeconnction(req, res) {
+    static removeconnction(req) {
 
         const Connecteddevices = require('../storage/connected_devices.json')
-        console.log("[2] New Port set to Server 127.0.1.1:" + portdata)
+        console.log("[2] Port Disabled 127.0.0.2:" + req.auth.port)
 
         const newdevices = { "devices": [] }
 
-        removeuser({"userip":"127.0.1.1", "userport": req.port}, res)
+        removeuser({"id": req.userid})
 
         for (let i = 0; i < Connecteddevices.devices.length; i++) {
 
-            if(Connecteddevices.devices[i].port == req.port){
-
-            }else{
+            if(Connecteddevices.devices[i].port != req.auth.port){
                 newdevices.devices.push(Connecteddevices.devices[i])
             }
 
         }
 
-        fs.writeFileSync("../storage/connected_devices.json", newdevices, (e) => {
+        fs.writeFileSync("./storage/connected_devices.json", JSON.stringify(newdevices), (e) => {
             console.logError(e, "[2] Fehler!")
         })
 
-        return res.json({ "disconnected": true })
+        return;
 
     }
 
